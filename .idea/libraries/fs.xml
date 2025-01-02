@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="fs">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/src/html/template/testdata/fs.zip!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>
