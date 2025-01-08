@@ -1070,6 +1070,7 @@ func CreateModFile(ctx context.Context, modPath string) {
 	modRoot := base.Cwd()
 	modRoots = []string{modRoot}
 	Init()
+	//构造go.mod文件地址
 	modFilePath := modFilePath(modRoot)
 	if _, err := fsys.Stat(modFilePath); err == nil {
 		base.Fatalf("go: %s already exists", modFilePath)
