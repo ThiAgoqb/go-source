@@ -65,10 +65,12 @@ import (
 // API boundaries.
 //
 // Context's methods may be called by multiple goroutines simultaneously.
+// content 定义接口规范
 type Context interface {
 	// Deadline returns the time when work done on behalf of this context
 	// should be canceled. Deadline returns ok==false when no deadline is
 	// set. Successive calls to Deadline return the same results.
+	//定义一个截止时间接口，返回一个超时时间及bool
 	Deadline() (deadline time.Time, ok bool)
 
 	// Done returns a channel that's closed when work done on behalf of this
@@ -102,6 +104,7 @@ type Context interface {
 	//
 	// See https://blog.golang.org/pipelines for more examples of how to use
 	// a Done channel for cancellation.
+	//定义返回完成标识 返回一个channel
 	Done() <-chan struct{}
 
 	// If Done is not yet closed, Err returns nil.
@@ -156,10 +159,12 @@ type Context interface {
 	// 		u, ok := ctx.Value(userKey).(*User)
 	// 		return u, ok
 	// 	}
+	//定义一个根据key获取值的接口
 	Value(key any) any
 }
 
 // Canceled is the error returned by [Context.Err] when the context is canceled.
+// 定义一个取消的error code
 var Canceled = errors.New("context canceled")
 
 // DeadlineExceeded is the error returned by [Context.Err] when the context's
@@ -174,6 +179,7 @@ func (deadlineExceededError) Temporary() bool { return true }
 
 // An emptyCtx is never canceled, has no values, and has no deadline.
 // It is the common base of backgroundCtx and todoCtx.
+// 定义一个context的结构体
 type emptyCtx struct{}
 
 func (emptyCtx) Deadline() (deadline time.Time, ok bool) {
@@ -192,6 +198,7 @@ func (emptyCtx) Value(key any) any {
 	return nil
 }
 
+// 定义一个backgroundCtx结构体 成员有emptCtx
 type backgroundCtx struct{ emptyCtx }
 
 func (backgroundCtx) String() string {
@@ -208,6 +215,7 @@ func (todoCtx) String() string {
 // values, and has no deadline. It is typically used by the main function,
 // initialization, and tests, and as the top-level Context for incoming
 // requests.
+// 暴露出创建backgroundCtx结构体
 func Background() Context {
 	return backgroundCtx{}
 }
@@ -224,6 +232,7 @@ func TODO() Context {
 // A CancelFunc does not wait for the work to stop.
 // A CancelFunc may be called by multiple goroutines simultaneously.
 // After the first call, subsequent calls to a CancelFunc do nothing.
+// 定义一个取消的函数
 type CancelFunc func()
 
 // WithCancel returns a copy of parent with a new Done channel. The returned
@@ -232,8 +241,11 @@ type CancelFunc func()
 //
 // Canceling this context releases resources associated with it, so code should
 // call cancel as soon as the operations running in this [Context] complete.
+// 定义一个取消的函数传入context
 func WithCancel(parent Context) (ctx Context, cancel CancelFunc) {
+	//创建一个cancelCtx
 	c := withCancel(parent)
+	//返回一个cancelCtx和取消函数
 	return c, func() { c.cancel(true, Canceled, nil) }
 }
 
@@ -260,16 +272,21 @@ type CancelCauseFunc func(cause error)
 //	cancel(myError)
 //	ctx.Err() // returns context.Canceled
 //	context.Cause(ctx) // returns myError
+//
+// 创建一个带异常的cancel函数
 func WithCancelCause(parent Context) (ctx Context, cancel CancelCauseFunc) {
 	c := withCancel(parent)
 	return c, func(cause error) { c.cancel(true, Canceled, cause) }
 }
 
 func withCancel(parent Context) *cancelCtx {
+	//如果传入的context为空 panic
 	if parent == nil {
 		panic("cannot create context from nil parent")
 	}
+	//创建一个cancelCtx
 	c := &cancelCtx{}
+	//传播子节点的context创建取消结构体
 	c.propagateCancel(parent, c)
 	return c
 }
@@ -280,6 +297,7 @@ func withCancel(parent Context) *cancelCtx {
 // then [Cause] returns err.
 // Otherwise Cause(c) returns the same value as c.Err().
 // Cause returns nil if c has not been canceled yet.
+// 翻译一个context为何会被取消的原因
 func Cause(c Context) error {
 	if cc, ok := c.Value(&cancelCtxKey).(*cancelCtx); ok {
 		cc.mu.Lock()
@@ -344,6 +362,7 @@ func (a *afterFuncCtx) cancel(removeFromParent bool, err, cause error) {
 	if removeFromParent {
 		removeChild(a.Context, a)
 	}
+	//取消后执行一次afterFuncCtx的f函数
 	a.once.Do(func() {
 		go a.f()
 	})
@@ -370,10 +389,13 @@ var cancelCtxKey int
 // has been wrapped in a custom implementation providing a
 // different done channel, in which case we should not bypass it.)
 func parentCancelCtx(parent Context) (*cancelCtx, bool) {
+	//获取parent chan
 	done := parent.Done()
+	//如果parent chan 已关闭或者为空直接返回
 	if done == closedchan || done == nil {
 		return nil, false
 	}
+
 	p, ok := parent.Value(&cancelCtxKey).(*cancelCtx)
 	if !ok {
 		return nil, false
@@ -387,15 +409,19 @@ func parentCancelCtx(parent Context) (*cancelCtx, bool) {
 
 // removeChild removes a context from its parent.
 func removeChild(parent Context, child canceler) {
+	//判断parent是否是stopCtx 如果是进行stop操作
 	if s, ok := parent.(stopCtx); ok {
 		s.stop()
 		return
 	}
+	//将parent进行关闭chan
 	p, ok := parentCancelCtx(parent)
+	//false 已经操作完成直接返回即可
 	if !ok {
 		return
 	}
 	p.mu.Lock()
+	//如果parent的child不为空直接删除children
 	if p.children != nil {
 		delete(p.children, child)
 	}
@@ -419,27 +445,39 @@ func init() {
 // A cancelCtx can be canceled. When canceled, it also cancels any children
 // that implement canceler.
 type cancelCtx struct {
+	//实现Context接口
 	Context
-
-	mu       sync.Mutex            // protects following fields
-	done     atomic.Value          // of chan struct{}, created lazily, closed by first cancel call
+	//mutex
+	mu sync.Mutex // protects following fields
+	//存储的chan
+	done atomic.Value // of chan struct{}, created lazily, closed by first cancel call
+	//子节点的Context
 	children map[canceler]struct{} // set to nil by the first cancel call
-	err      error                 // set to non-nil by the first cancel call
-	cause    error                 // set to non-nil by the first cancel call
+	//取消原因
+	err error // set to non-nil by the first cancel call
+	//取消原因
+	cause error // set to non-nil by the first cancel call
 }
 
+// 获取context中的key对应的value
 func (c *cancelCtx) Value(key any) any {
+	//如果key == 内置的cancelCtxKey即返回c
 	if key == &cancelCtxKey {
 		return c
 	}
+	//获取key对应的value值
 	return value(c.Context, key)
 }
 
+// Done 获取context中的chan
 func (c *cancelCtx) Done() <-chan struct{} {
+	//直接获取chan
 	d := c.done.Load()
+	//如果不为空 返回chan
 	if d != nil {
 		return d.(chan struct{})
 	}
+	//如果为空 dcl机制创建chan并设置到c.done中返回
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	d = c.done.Load()
@@ -450,6 +488,7 @@ func (c *cancelCtx) Done() <-chan struct{} {
 	return d.(chan struct{})
 }
 
+// Err 获取cancelCtx err信息
 func (c *cancelCtx) Err() error {
 	c.mu.Lock()
 	err := c.err
@@ -460,16 +499,20 @@ func (c *cancelCtx) Err() error {
 // propagateCancel arranges for child to be canceled when parent is.
 // It sets the parent context of cancelCtx.
 func (c *cancelCtx) propagateCancel(parent Context, child canceler) {
+	//cancelCtx的Context属性赋值
 	c.Context = parent
-
+	//获取parent的Context的chan
 	done := parent.Done()
+	//如果是nil返回，不需要取消
 	if done == nil {
 		return // parent is never canceled
 	}
 
 	select {
+	//check parent chan是否已经取消
 	case <-done:
 		// parent is already canceled
+		//如果取消了，子节点也需要取消
 		child.cancel(false, parent.Err(), Cause(parent))
 		return
 	default:
@@ -519,6 +562,7 @@ type stringer interface {
 	String() string
 }
 
+// 获取context的名称
 func contextName(c Context) string {
 	if s, ok := c.(stringer); ok {
 		return s.String()
@@ -526,6 +570,7 @@ func contextName(c Context) string {
 	return reflectlite.TypeOf(c).String()
 }
 
+// 获取cancelCtx的名称
 func (c *cancelCtx) String() string {
 	return contextName(c.Context) + ".WithCancel"
 }
@@ -534,29 +579,39 @@ func (c *cancelCtx) String() string {
 // removeFromParent is true, removes c from its parent's children.
 // cancel sets c.cause to cause if this is the first time c is canceled.
 func (c *cancelCtx) cancel(removeFromParent bool, err, cause error) {
+	//如果错误为空panic
 	if err == nil {
 		panic("context: internal error: missing cancel error")
 	}
+	//如果cause是nil 将err赋值给cause
 	if cause == nil {
 		cause = err
 	}
+	//child 加锁
 	c.mu.Lock()
+	//如果child err不为空说明已经取消了直接返回
 	if c.err != nil {
 		c.mu.Unlock()
 		return // already canceled
 	}
+	//将err赋值给child err
 	c.err = err
+	//将cause赋值给child cause
 	c.cause = cause
+	//获取child chan
 	d, _ := c.done.Load().(chan struct{})
+	//如果child chan为空 设置默认已关闭的closedchan 赋值给child chan 否则关闭child chan
 	if d == nil {
 		c.done.Store(closedchan)
 	} else {
 		close(d)
 	}
+	//遍历child的所有的children 的chan进行取消操作
 	for child := range c.children {
 		// NOTE: acquiring the child's lock while holding parent's lock.
 		child.cancel(false, err, cause)
 	}
+	//取消之后设置children 为nil
 	c.children = nil
 	c.mu.Unlock()
 
@@ -615,26 +670,35 @@ func WithDeadline(parent Context, d time.Time) (Context, CancelFunc) {
 // WithDeadlineCause behaves like [WithDeadline] but also sets the cause of the
 // returned Context when the deadline is exceeded. The returned [CancelFunc] does
 // not set the cause.
+// 带有超时时间的context
 func WithDeadlineCause(parent Context, d time.Time, cause error) (Context, CancelFunc) {
+	//context 为空 panic
 	if parent == nil {
 		panic("cannot create context from nil parent")
 	}
+	//如果parent是timeCtx的context直接返回
 	if cur, ok := parent.Deadline(); ok && cur.Before(d) {
 		// The current deadline is already sooner than the new one.
 		return WithCancel(parent)
 	}
+	//创建一个timerCtx实例
 	c := &timerCtx{
 		deadline: d,
 	}
+	//传播取消
 	c.cancelCtx.propagateCancel(parent, c)
+	//计算剩余时间
 	dur := time.Until(d)
+	//如果没有时间取消context执行
 	if dur <= 0 {
 		c.cancel(true, DeadlineExceeded, cause) // deadline has already passed
 		return c, func() { c.cancel(false, Canceled, nil) }
 	}
 	c.mu.Lock()
 	defer c.mu.Unlock()
+	//判断context是否为空
 	if c.err == nil {
+		//初始化timer
 		c.timer = time.AfterFunc(dur, func() {
 			c.cancel(true, DeadlineExceeded, cause)
 		})
@@ -710,6 +774,7 @@ func WithTimeoutCause(parent Context, timeout time.Duration, cause error) (Conte
 // interface{}, context keys often have concrete type
 // struct{}. Alternatively, exported context key variables' static
 // type should be a pointer or interface.
+// 设置context的key value存储 存储在valueCtx中
 func WithValue(parent Context, key, val any) Context {
 	if parent == nil {
 		panic("cannot create context from nil parent")
@@ -751,6 +816,7 @@ func (c *valueCtx) String() string {
 		stringify(c.val) + ")"
 }
 
+// Value 获取key对应的值
 func (c *valueCtx) Value(key any) any {
 	if c.key == key {
 		return c.val
@@ -760,8 +826,11 @@ func (c *valueCtx) Value(key any) any {
 
 func value(c Context, key any) any {
 	for {
+		//获取c的类型
 		switch ctx := c.(type) {
+		//c如果是valueCtx 从
 		case *valueCtx:
+			//valueContext中存储一个key
 			if key == ctx.key {
 				return ctx.val
 			}

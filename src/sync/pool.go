@@ -96,10 +96,12 @@ func poolRaceAddr(x any) unsafe.Pointer {
 }
 
 // Put adds x to the pool.
+// 添加元素至pool中
 func (p *Pool) Put(x any) {
 	if x == nil {
 		return
 	}
+	//判断是否存在竞争
 	if race.Enabled {
 		if runtime_randn(4) == 0 {
 			// Randomly drop x on floor.
@@ -199,6 +201,9 @@ func (p *Pool) getSlow(pid int) any {
 // pin pins the current goroutine to P, disables preemption and
 // returns poolLocal pool for the P and the P's id.
 // Caller must call runtime_procUnpin() when done with the pool.
+// pin将当前goroutine固定到P，禁用抢占和
+// 返回P和P的id的poolLocal池。
+// 调用方在处理完池后必须调用runtime_procUnpin（）。
 func (p *Pool) pin() (*poolLocal, int) {
 	// Check whether p is nil to get a panic.
 	// Otherwise the nil dereference happens while the m is pinned,
@@ -214,6 +219,7 @@ func (p *Pool) pin() (*poolLocal, int) {
 	// We can observe a newer/larger local, it is fine (we must observe its zero-initialized-ness).
 	s := runtime_LoadAcquintptr(&p.localSize) // load-acquire
 	l := p.local                              // load-consume
+	//如果pid小于p.localSize的pid直接从localpool 本地池中取数据
 	if uintptr(pid) < s {
 		return indexLocal(l, pid), pid
 	}
@@ -303,8 +309,14 @@ func indexLocal(l unsafe.Pointer, i int) *poolLocal {
 }
 
 // Implemented in runtime.
+//
+//go:linkname runtime_registerPoolCleanup
 func runtime_registerPoolCleanup(cleanup func())
+
+//go:linkname runtime_procPin
 func runtime_procPin() int
+
+//go:linkname runtime_procUnpin
 func runtime_procUnpin()
 
 // The below are implemented in internal/runtime/atomic and the
