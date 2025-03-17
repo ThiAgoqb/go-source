@@ -35,15 +35,19 @@ func init() {
 	base.AddModCommonFlags(&cmdInit.Flag)
 }
 
+// 执行go mod init 命令执行入口
 func runInit(ctx context.Context, cmd *base.Command, args []string) {
+	//args 是go mod init 后面带的参数 仅支持一个参数
 	if len(args) > 1 {
 		base.Fatalf("go: 'go mod init' accepts at most one argument")
 	}
 	var modPath string
+	//获取参数即包的名称
 	if len(args) == 1 {
 		modPath = args[0]
 	}
-
+	//设置forceUseModules为true
 	modload.ForceUseModules = true
+	//创建mod文件
 	modload.CreateModFile(ctx, modPath) // does all the hard work
 }

@@ -65,69 +65,85 @@ import (
 
 // SwapInt32 atomically stores new into *addr and returns the previous *addr value.
 // Consider using the more ergonomic and less error-prone [Int32.Swap] instead.
+// 将int32类型new值存储到*addr这个地址上，并返回*addr这个地址之前旧的值 为空取默认值
 func SwapInt32(addr *int32, new int32) (old int32)
 
 // SwapInt64 atomically stores new into *addr and returns the previous *addr value.
 // Consider using the more ergonomic and less error-prone [Int64.Swap] instead
 // (particularly if you target 32-bit platforms; see the bugs section).
+// 将int64类型new值存储到*addr这个地址上，并返回*addr这个地址之前旧的值 为空取默认值
 func SwapInt64(addr *int64, new int64) (old int64)
 
 // SwapUint32 atomically stores new into *addr and returns the previous *addr value.
 // Consider using the more ergonomic and less error-prone [Uint32.Swap] instead.
+// 将uint32类型new值存储到*addr这个地址上，并返回*addr这个地址之前旧的值 为空取默认值
 func SwapUint32(addr *uint32, new uint32) (old uint32)
 
 // SwapUint64 atomically stores new into *addr and returns the previous *addr value.
 // Consider using the more ergonomic and less error-prone [Uint64.Swap] instead
 // (particularly if you target 32-bit platforms; see the bugs section).
+// 将uint64类型new值存储到*addr这个地址上，并返回*addr这个地址之前旧的值 为空取默认值
 func SwapUint64(addr *uint64, new uint64) (old uint64)
 
 // SwapUintptr atomically stores new into *addr and returns the previous *addr value.
 // Consider using the more ergonomic and less error-prone [Uintptr.Swap] instead.
+// 将uint类型new值存储到*addr这个地址上，并返回*addr这个地址之前旧的值 为空取默认值
 func SwapUintptr(addr *uintptr, new uintptr) (old uintptr)
 
 // SwapPointer atomically stores new into *addr and returns the previous *addr value.
 // Consider using the more ergonomic and less error-prone [Pointer.Swap] instead.
+// 将Pointer类型new值存储到*addr这个地址上，并返回*addr这个地址之前旧的值 为空取默认值
 func SwapPointer(addr *unsafe.Pointer, new unsafe.Pointer) (old unsafe.Pointer)
 
 // CompareAndSwapInt32 executes the compare-and-swap operation for an int32 value.
 // Consider using the more ergonomic and less error-prone [Int32.CompareAndSwap] instead.
+// 将Int32类型new值做比较并交换功能 *addr地址对应的值与old是否相等，如果相等将new值存储到*addr这个地址上，返回是否交换成功表标识
 func CompareAndSwapInt32(addr *int32, old, new int32) (swapped bool)
 
 // CompareAndSwapInt64 executes the compare-and-swap operation for an int64 value.
 // Consider using the more ergonomic and less error-prone [Int64.CompareAndSwap] instead
 // (particularly if you target 32-bit platforms; see the bugs section).
+// 将Int64类型new值做比较并交换功能 *addr地址对应的值与old是否相等，如果相等将new值存储到*addr这个地址上，返回是否交换成功表标识
 func CompareAndSwapInt64(addr *int64, old, new int64) (swapped bool)
 
 // CompareAndSwapUint32 executes the compare-and-swap operation for a uint32 value.
 // Consider using the more ergonomic and less error-prone [Uint32.CompareAndSwap] instead.
+// 将Uint32类型new值做比较并交换功能 *addr地址对应的值与old是否相等，如果相等将new值存储到*addr这个地址上，返回是否交换成功表标识
 func CompareAndSwapUint32(addr *uint32, old, new uint32) (swapped bool)
 
 // CompareAndSwapUint64 executes the compare-and-swap operation for a uint64 value.
 // Consider using the more ergonomic and less error-prone [Uint64.CompareAndSwap] instead
 // (particularly if you target 32-bit platforms; see the bugs section).
+
+// 将Uint64类型new值做比较并交换功能 *addr地址对应的值与old是否相等，如果相等将new值存储到*addr这个地址上，返回是否交换成功表标识
 func CompareAndSwapUint64(addr *uint64, old, new uint64) (swapped bool)
 
 // CompareAndSwapUintptr executes the compare-and-swap operation for a uintptr value.
 // Consider using the more ergonomic and less error-prone [Uintptr.CompareAndSwap] instead.
+// 将pUint类型new值做比较并交换功能 *addr地址对应的值与old是否相等，如果相等将new值存储到*addr这个地址上，返回是否交换成功表标识
 func CompareAndSwapUintptr(addr *uintptr, old, new uintptr) (swapped bool)
 
 // CompareAndSwapPointer executes the compare-and-swap operation for a unsafe.Pointer value.
 // Consider using the more ergonomic and less error-prone [Pointer.CompareAndSwap] instead.
+// 将unsafe.Pointer类型new值做比较并交换功能 *addr地址对应的值与old是否相等，如果相等将new值存储到*addr这个地址上，返回是否交换成功表标识
 func CompareAndSwapPointer(addr *unsafe.Pointer, old, new unsafe.Pointer) (swapped bool)
 
 // AddInt32 atomically adds delta to *addr and returns the new value.
 // Consider using the more ergonomic and less error-prone [Int32.Add] instead.
+// 原子操作 将Int32类型*addr地址对应的值与delta值相加，后返回相加后的新值
 func AddInt32(addr *int32, delta int32) (new int32)
 
 // AddUint32 atomically adds delta to *addr and returns the new value.
 // To subtract a signed positive constant value c from x, do AddUint32(&x, ^uint32(c-1)).
 // In particular, to decrement x, do AddUint32(&x, ^uint32(0)).
 // Consider using the more ergonomic and less error-prone [Uint32.Add] instead.
+// 原子操作 将Uint32类型*addr地址对应的值与delta值相加，后返回相加后的新值
 func AddUint32(addr *uint32, delta uint32) (new uint32)
 
 // AddInt64 atomically adds delta to *addr and returns the new value.
 // Consider using the more ergonomic and less error-prone [Int64.Add] instead
 // (particularly if you target 32-bit platforms; see the bugs section).
+// 原子操作 将Int64类型*addr地址对应的值与delta值相加，后返回相加后的新值
 func AddInt64(addr *int64, delta int64) (new int64)
 
 // AddUint64 atomically adds delta to *addr and returns the new value.
@@ -135,10 +151,12 @@ func AddInt64(addr *int64, delta int64) (new int64)
 // In particular, to decrement x, do AddUint64(&x, ^uint64(0)).
 // Consider using the more ergonomic and less error-prone [Uint64.Add] instead
 // (particularly if you target 32-bit platforms; see the bugs section).
+// 原子操作 将Uint64类型*addr地址对应的值与delta值相加，后返回相加后的新值
 func AddUint64(addr *uint64, delta uint64) (new uint64)
 
 // AddUintptr atomically adds delta to *addr and returns the new value.
 // Consider using the more ergonomic and less error-prone [Uintptr.Add] instead.
+// 原子操作 将uintptr类型*addr地址对应的值与delta值相加，后返回相加后的新值
 func AddUintptr(addr *uintptr, delta uintptr) (new uintptr)
 
 // AndInt32 atomically performs a bitwise AND operation on *addr using the bitmask provided as mask
@@ -193,32 +211,39 @@ func OrUintptr(addr *uintptr, mask uintptr) (old uintptr)
 
 // LoadInt32 atomically loads *addr.
 // Consider using the more ergonomic and less error-prone [Int32.Load] instead.
+// 原子操作 获取int32类型*addr地址对应的值
 func LoadInt32(addr *int32) (val int32)
 
 // LoadInt64 atomically loads *addr.
 // Consider using the more ergonomic and less error-prone [Int64.Load] instead
 // (particularly if you target 32-bit platforms; see the bugs section).
+// 原子操作 获取int64类型*addr地址对应的值
 func LoadInt64(addr *int64) (val int64)
 
 // LoadUint32 atomically loads *addr.
 // Consider using the more ergonomic and less error-prone [Uint32.Load] instead.
+// 原子操作 获取uint32类型*addr地址对应的值
 func LoadUint32(addr *uint32) (val uint32)
 
 // LoadUint64 atomically loads *addr.
 // Consider using the more ergonomic and less error-prone [Uint64.Load] instead
 // (particularly if you target 32-bit platforms; see the bugs section).
+// 原子操作 获取uint64类型*addr地址对应的值
 func LoadUint64(addr *uint64) (val uint64)
 
 // LoadUintptr atomically loads *addr.
 // Consider using the more ergonomic and less error-prone [Uintptr.Load] instead.
+// 原子操作 获取uintptr类型*addr地址对应的值
 func LoadUintptr(addr *uintptr) (val uintptr)
 
 // LoadPointer atomically loads *addr.
 // Consider using the more ergonomic and less error-prone [Pointer.Load] instead.
+// 原子操作 获取unsafe.pointer类型*addr地址对应的值
 func LoadPointer(addr *unsafe.Pointer) (val unsafe.Pointer)
 
 // StoreInt32 atomically stores val into *addr.
 // Consider using the more ergonomic and less error-prone [Int32.Store] instead.
+// 原子操作 设置int32类型*addr地址的值为val
 func StoreInt32(addr *int32, val int32)
 
 // StoreInt64 atomically stores val into *addr.

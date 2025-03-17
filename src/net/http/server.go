@@ -3285,7 +3285,7 @@ func (srv *Server) ListenAndServe() error {
 	if addr == "" {
 		addr = ":http"
 	}
-	//创建监听器
+	//创建监听器 listen
 	ln, err := net.Listen("tcp", addr)
 	if err != nil {
 		return err
